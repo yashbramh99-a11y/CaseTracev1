@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String      @id @default(uuid())
+  phone      String      @unique
+  name       String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  complaints Complaint[]
+}
+
+model Complaint {
+  id          String            @id @default(uuid())
+  complaintId String            @unique // ID provided by police
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+  title       String
+  description String
+  status      String            @default("PENDING") // PENDING, ACTIVE, RESOLVED
+  filedAt     DateTime          @default(now())
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  updates     CaseUpdate[]
+  alerts      EscalationAlert[]
+}
+
+model CaseUpdate {
+  id          String    @id @default(uuid())
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id])
+  updateText  String
+  updatedBy   String
+  createdAt   DateTime  @default(now())
+}
+
+model EscalationAlert {
+  id          String    @id @default(uuid())
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id])
+  reason      String
+  isResolved  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+}
